@@ -1,0 +1,26 @@
+# Build output
+target/
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.DS_Store
+
+# Secrets: never commit real audit keys
+.env
+.env.*
+*.key
+
+# Personal notes, not part of the submission
+INTERVIEW_NOTES.md
+AI_NOTES.md
+
+# Case-study brief is not redistributed
+*.pdf
+
+# Local Claude Code settings
+.claude/
