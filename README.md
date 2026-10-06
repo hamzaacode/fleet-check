@@ -62,7 +62,7 @@ An auditor needs:
 2. **The key**, fetched from escrow by the `keyId` stored in the result. The key itself is never stored with the result.
 3. **companyId, quarter, percentage, and the exact eligible vehicle-ID set.**
 
-They recompute `inputFingerprint` and check that it matches the stored one, which proves they have identical inputs. Then they re-run the algorithm. `GoldenSelectionTest` pins one selection and was cross-checked against an independent Python implementation of the description above. Exact byte layout:
+They recompute `inputFingerprint` and verify that it matches the stored fingerprint, providing a deterministic integrity check that the supplied audit inputs match the original selection inputs. Then they re-run the algorithm. `GoldenSelectionTest` pins one selection and was cross-checked against an independent Python implementation of the description above. Exact byte layout:
 
 - `enc(f1, …, fn)` = for each field: `uint32_be(len(utf8(f)))` ‖ `utf8(f)`
 - Score message: `enc("HMAC-SHA256-RANK-v1", companyId, "2026-Q4", vehicleId)`
