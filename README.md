@@ -78,7 +78,7 @@ They recompute `inputFingerprint` and verify that it matches the stored fingerpr
 
 In production the store is a table with `UNIQUE(company_id, quarter)`. In one transaction, run `INSERT … ON CONFLICT (company_id, quarter) DO NOTHING`, then `SELECT` the row, and compare fingerprints.
 
-**Deviation from the brief's pinned design:** `keyId` is part of the fingerprint. Otherwise, a re-run with a different key would have the same fingerprint and would not raise the conflict the brief asks for.
+**Design note:** `keyId` is part of the fingerprint. Otherwise, a re-run with a different key would produce the same fingerprint and would not raise a conflict.
 
 ## Previous-quarter eligibility
 
@@ -140,13 +140,12 @@ src/test/java/com/fleetcheck/selection/   unit tests per component, plus golden,
 
 ## Production considerations
 
-- **PostgreSQL** table `quarterly_selection` with `UNIQUE(company_id, quarter)`. Write with `INSERT … ON CONFLICT DO NOTHING` + `SELECT` in one transaction, so multiple instances agree on a single winner.
+- **PostgreSQL** table `quarterly_selections` with `UNIQUE(company_id, quarter)`. Write with `INSERT … ON CONFLICT DO NOTHING` + `SELECT` in one transaction, so multiple instances agree on a single winner.
 - **Key in AWS Secrets Manager / KMS**, loaded by `keyId`. Rotate by issuing a new `keyId` for new quarters, and keep retired keys readable for audits.
 - **Keep old algorithm versions runnable.** A change in output means a new `ALGORITHM_VERSION`, never an edit to v1. The golden test enforces this.
 - **Store the eligible-set snapshot** (the vehicle IDs) with each selection, so an audit doesn't depend on reconstructing "active on that day".
 - **Append-only audit log** of selection requests, conflicts and who triggered them.
-- **Publish a commitment** (a hash of the key) before each quarter if selections must be verifiable by outsiders.
-
+- **Publish a commitment** (SHA-256 of the key) before each quarter, so the regulator can check the key wasn't chosen after seeing the result.
 ## Why Java
 
 Java is where I write the most rigorous, well-tested code fastest, and the algorithm (HMAC, sort, SHA-256 over a documented byte layout) ports directly to NestJS via `crypto.createHmac` and `Buffer.compare`.
